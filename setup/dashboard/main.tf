@@ -8,7 +8,7 @@ resource "google_cloud_run_service" "dashboard" {
         ports {
           container_port = 3000
         }
-        image = "gcr.io/${var.google_project_id}/fourkeys-grafana-dashboard"
+        image = "gcr.io/${var.google_project_id}/fourkeys-grafana-dashboard${var.image_tag}"
         env {
           name  = "PROJECT_NAME"
           value = var.google_project_id

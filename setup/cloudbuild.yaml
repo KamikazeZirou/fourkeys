@@ -12,4 +12,4 @@ steps:
         apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
         apt-get update && apt-get install -y terraform
         
-        ./setup.sh -a --project $_PROJECT_ID
+        ./setup.sh -a --project $_PROJECT_ID --tag ":$COMMIT_SHA"

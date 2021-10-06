@@ -18,3 +18,7 @@ variable "parsers" {
   description = "list of data parsers to configure (e.g. 'gitlab','tekton')"
   type        = list(any)
 }
+
+variable "image_tag" {
+  type = string
+}

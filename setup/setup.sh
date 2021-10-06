@@ -26,6 +26,7 @@ CICD_SYSTEM=""
 GENERATE_DATA="no"
 FOURKEYS_REGION="asia-northeast1"
 BIGQUERY_REGION="US"
+IMAGE_TAG=":latest"
 
 for i in "$@"
 do
@@ -38,6 +39,7 @@ do
     --mock ) GENERATE_DATA="yes"; shift;;
     --region ) FOURKEYS_REGION=$2; shift 2;;
     --bqregion ) BIGQUERY_REGION=$2; shift 2;;
+    --tag ) IMAGE_TAG=$2; shift 2;;
     -h | --help ) echo "Usage: ./setup.sh [--clean] [--auto] [--project] [--vcs] [--cicd] [--mock] [--region] [--bqregion]"; exit 0; shift;;
     *) ;; # unknown option
   esac
@@ -161,6 +163,7 @@ google_project_id = "${FOURKEYS_PROJECT}"
 google_region = "${FOURKEYS_REGION}"
 bigquery_region = "${BIGQUERY_REGION}"
 parsers = [${PARSERS}]
+image_tag = "${IMAGE_TAG}"
 EOF
 
 echo "••••••••🔑••🔑••🔑••🔑••••••••"

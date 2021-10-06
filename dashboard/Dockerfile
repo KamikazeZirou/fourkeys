@@ -15,9 +15,8 @@
 FROM grafana/grafana
 
 # Remove / disable these to require authentication
-ENV GF_AUTH_DISABLE_LOGIN_FORM "true"
-ENV GF_AUTH_ANONYMOUS_ENABLED "true"
-ENV GF_AUTH_ANONYMOUS_ORG_ROLE "Admin"
+ENV GF_SECURITY_ADMIN_USER "taro.ando"
+ENV GF_SECURITY_ADMIN_PASSWORD "(pDW516}hFv;1@2Y@pj}"
 
 # Setting grafana config
 COPY grafana.ini /etc/grafana
