@@ -1,0 +1,15 @@
+steps:
+  - name: gcr.io/google.com/cloudsdktool/cloud-sdk:slim
+    entrypoint: bash
+    args:
+      - '-c'
+      - |
+        cd setup
+
+        # terraformをinstallする
+        apt-get update && apt-get install -y gnupg software-properties-common curl
+        curl -fsSL https://apt.releases.hashicorp.com/gpg | apt-key add -
+        apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
+        apt-get update && apt-get install -y terraform
+        
+        ./setup.sh -a --project $_PROJECT_ID

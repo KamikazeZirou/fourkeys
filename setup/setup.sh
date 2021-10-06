@@ -133,7 +133,7 @@ fi
 if [[ ${CLEAN} == 'true' ]]
 then
     # purge all local terraform state
-    rm -rf .terraform* *.containerbuild.log terraform.tfstate* terraform.tfvars
+    rm -rf .terraform* *.containerbuild.log terraform.tfstate* terraform.tfvars backend.tf
 fi
 
 PARSERS=""
@@ -144,6 +144,16 @@ for PARSER in ${GIT_SYSTEM} ${CICD_SYSTEM}; do
         PARSERS+=",\"${PARSER}\""
     fi
 done
+
+# create a backend.tf file
+cat > backend.tf <<EOF
+terraform {
+  backend "gcs" {
+    bucket = "fourkeys-terraform"
+    prefix = "${FOURKEYS_PROJECT}"
+  }
+}
+EOF
 
 # create a tfvars file
 cat > terraform.tfvars <<EOF

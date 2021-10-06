@@ -50,18 +50,18 @@ FOURKEYS_PROJECTNUM=$(gcloud projects describe ${FOURKEYS_PROJECT} --format='val
 gcloud projects add-iam-policy-binding ${FOURKEYS_PROJECT} --member="serviceAccount:${PARENT_PROJECTNUM}@cloudbuild.gserviceaccount.com" --role="roles/storage.admin"
 
 # launch container builds in background/parallel
-gcloud builds submit ../event_handler --tag=gcr.io/${FOURKEYS_PROJECT}/event-handler --project=${PARENT_PROJECT} > event_handler.containerbuild.log & 
+gcloud builds submit ../event_handler --tag=gcr.io/${FOURKEYS_PROJECT}/event-handler --project=${PARENT_PROJECT} > event_handler.containerbuild.log
 
 if [[ ! -z "$GIT_SYSTEM" ]]; then
-    gcloud builds submit ../bq-workers/${GIT_SYSTEM}-parser --tag=gcr.io/${FOURKEYS_PROJECT}/${GIT_SYSTEM}-parser --project=${PARENT_PROJECT} > ${GIT_SYSTEM}-parser.containerbuild.log & 
+    gcloud builds submit ../bq-workers/${GIT_SYSTEM}-parser --tag=gcr.io/${FOURKEYS_PROJECT}/${GIT_SYSTEM}-parser --project=${PARENT_PROJECT} > ${GIT_SYSTEM}-parser.containerbuild.log
 fi
 
 if [[ ! -z "$CICD_SYSTEM" && "$CICD_SYSTEM" != "$GIT_SYSTEM" ]]; then
-    gcloud builds submit ../bq-workers/${CICD_SYSTEM}-parser --tag=gcr.io/${FOURKEYS_PROJECT}/${CICD_SYSTEM}-parser --project=${PARENT_PROJECT} > ${CICD_SYSTEM}-parser.containerbuild.log & 
+    gcloud builds submit ../bq-workers/${CICD_SYSTEM}-parser --tag=gcr.io/${FOURKEYS_PROJECT}/${CICD_SYSTEM}-parser --project=${PARENT_PROJECT} > ${CICD_SYSTEM}-parser.containerbuild.log
 fi
 
 # Dashboard image
-gcloud builds submit ../dashboard --tag=gcr.io/${FOURKEYS_PROJECT}/fourkeys-grafana-dashboard --project=${PARENT_PROJECT} > fourkeys-grafana-dashboard.containerbuild.log & 
+gcloud builds submit ../dashboard --tag=gcr.io/${FOURKEYS_PROJECT}/fourkeys-grafana-dashboard --project=${PARENT_PROJECT} > fourkeys-grafana-dashboard.containerbuild.log
 
 # wait for containers to be built, then continue
 wait
