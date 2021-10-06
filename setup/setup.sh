@@ -20,27 +20,33 @@ set -eEuo pipefail
 # PARSE INPUTS
 CLEAN="false"
 AUTO="false"
+FOURKEYS_PROJECT=""
+GIT_SYSTEM="github"
+CICD_SYSTEM=""
+GENERATE_DATA="no"
+FOURKEYS_REGION="asia-northeast1"
+BIGQUERY_REGION="US"
+
 for i in "$@"
 do
   case $i in
     -c | --clean ) CLEAN="true"; shift;;
     -a | --auto ) AUTO="true"; shift;;
-    -h | --help ) echo "Usage: ./setup.sh [--clean] [--auto]"; exit 0; shift;;
+    --project ) FOURKEYS_PROJECT=$2; shift 2;;
+    --vcs ) GIT_SYSTEM=$2; shift 2;;
+    --cicd ) CICD_SYSTEM=$2; shift 2;;
+    --mock ) GENERATE_DATA="yes"; shift;;
+    --region ) FOURKEYS_REGION=$2; shift 2;;
+    --bqregion ) BIGQUERY_REGION=$2; shift 2;;
+    -h | --help ) echo "Usage: ./setup.sh [--clean] [--auto] [--project] [--vcs] [--cicd] [--mock] [--region] [--bqregion]"; exit 0; shift;;
     *) ;; # unknown option
   esac
 done
 
 PARENT_PROJECT=$(gcloud config get-value project 2>/dev/null)
 
-if [[ ${AUTO} == 'true' ]]
+if [[ ${AUTO} != 'true' ]]
 then
-    # populate setup variables (for use in testing/dev)
-    make_new_project='y'
-    git_system_id=2
-    cicd_system_id=1
-    generate_mock_data=y
-    CLEAN='true'
-else
     read -p "Would you like to create a new project for The Four Keys (y/N): " make_new_project
     make_new_project=${make_new_project:-no}
 
@@ -67,66 +73,67 @@ else
 
     read -p "Would you like to generate mock data? (y/N): " generate_mock_data
     generate_mock_data=${generate_mock_data:-no}
+
+
+    if [ $make_new_project == 'y' ]; then
+        echo "Creating new project for Four Keys Dashboard…"
+        # PARENT_FOLDER=$(gcloud projects describe ${PARENT_PROJECT} --format="value(parent.id)")
+        BILLING_ACCOUNT=$(gcloud beta billing projects describe ${PARENT_PROJECT} --format="value(billingAccountName)" || sed -e 's/.*\///g')
+        FOURKEYS_PROJECT=$(printf "fourkeys-%06d" $((RANDOM%999999)))
+        FOURKEYS_REGION="us-central1"
+        BIGQUERY_REGION="US"
+        
+        # try to create project; if fail, exit script
+        set +e
+        gcloud projects create ${FOURKEYS_PROJECT}  # --folder=${PARENT_FOLDER}
+        if [ $? -ne 0 ]; then
+            echo "Unable to create project; try again, and specify an existing project during setup."
+            exit 1
+        fi
+
+        gcloud beta billing projects link ${FOURKEYS_PROJECT} --billing-account=${BILLING_ACCOUNT}
+        if [ $? -ne 0 ]; then
+            echo "Unable to link billing account ${BILLING_ACCOUNT} to project ${FOURKEYS_PROJECT}."
+            echo "Assign a billing account manually, then re-run setup and specify the project during setup."
+            exit 1
+        fi
+        set -e
+    else
+        read -p "Enter the project ID for Four Keys installation (ex: 'my-project'): " FOURKEYS_PROJECT
+        read -p "Enter the region for Four Keys resources (ex: 'us-central1'): " FOURKEYS_REGION
+        read -p "Enter the location for Four Keys BigQuery resources ('US' or 'EU'): " BIGQUERY_REGION
+    fi
+
+    printf "\n"
+
+    GIT_SYSTEM=""
+    CICD_SYSTEM=""
+
+    case $git_system_id in
+        1) GIT_SYSTEM="gitlab" ;;
+        2) GIT_SYSTEM="github" ;;
+        *) echo "Please see the documentation to learn how to extend to VCS sources other than GitHub or GitLab"
+    esac
+
+    case $cicd_system_id in
+        1) CICD_SYSTEM="cloud-build" ;;
+        2) CICD_SYSTEM="tekton" ;;
+        3) CICD_SYSTEM="gitlab" ;;
+        4) CICD_SYSTEM="circleci" ;;
+        *) echo "Please see the documentation to learn how to extend to CI/CD sources other than Cloud Build, Tekton, GitLab, CircleCI or GitHub."
+    esac
+
+    if [ $generate_mock_data == "y" ]; then
+        GENERATE_DATA="yes"
+    else
+        GENERATE_DATA="no"
+    fi
 fi
 
 if [[ ${CLEAN} == 'true' ]]
 then
     # purge all local terraform state
     rm -rf .terraform* *.containerbuild.log terraform.tfstate* terraform.tfvars
-fi
-
-if [ $make_new_project == 'y' ]; then
-    echo "Creating new project for Four Keys Dashboard…"
-    # PARENT_FOLDER=$(gcloud projects describe ${PARENT_PROJECT} --format="value(parent.id)")
-    BILLING_ACCOUNT=$(gcloud beta billing projects describe ${PARENT_PROJECT} --format="value(billingAccountName)" || sed -e 's/.*\///g')
-    FOURKEYS_PROJECT=$(printf "fourkeys-%06d" $((RANDOM%999999)))
-    FOURKEYS_REGION="us-central1"
-    BIGQUERY_REGION="US"
-    
-    # try to create project; if fail, exit script
-    set +e
-    gcloud projects create ${FOURKEYS_PROJECT}  # --folder=${PARENT_FOLDER}
-    if [ $? -ne 0 ]; then
-        echo "Unable to create project; try again, and specify an existing project during setup."
-        exit 1
-    fi
-
-    gcloud beta billing projects link ${FOURKEYS_PROJECT} --billing-account=${BILLING_ACCOUNT}
-    if [ $? -ne 0 ]; then
-        echo "Unable to link billing account ${BILLING_ACCOUNT} to project ${FOURKEYS_PROJECT}."
-        echo "Assign a billing account manually, then re-run setup and specify the project during setup."
-        exit 1
-    fi
-    set -e
-else
-    read -p "Enter the project ID for Four Keys installation (ex: 'my-project'): " FOURKEYS_PROJECT
-    read -p "Enter the region for Four Keys resources (ex: 'us-central1'): " FOURKEYS_REGION
-    read -p "Enter the location for Four Keys BigQuery resources ('US' or 'EU'): " BIGQUERY_REGION
-fi
-
-printf "\n"
-
-GIT_SYSTEM=""
-CICD_SYSTEM=""
-
-case $git_system_id in
-    1) GIT_SYSTEM="gitlab" ;;
-    2) GIT_SYSTEM="github" ;;
-    *) echo "Please see the documentation to learn how to extend to VCS sources other than GitHub or GitLab"
-esac
-
-case $cicd_system_id in
-    1) CICD_SYSTEM="cloud-build" ;;
-    2) CICD_SYSTEM="tekton" ;;
-    3) CICD_SYSTEM="gitlab" ;;
-    4) CICD_SYSTEM="circleci" ;;
-    *) echo "Please see the documentation to learn how to extend to CI/CD sources other than Cloud Build, Tekton, GitLab, CircleCI or GitHub."
-esac
-
-if [ $generate_mock_data == "y" ]; then
-    GENERATE_DATA="yes"
-else
-    GENERATE_DATA="no"
 fi
 
 PARSERS=""

@@ -41,6 +41,8 @@ export NOCOLOR="\033[0m"
 # build service containers (using parent project) and store them in the fourkeys project
 echo "••••••••🔑••🔑••🔑••🔑••••••••"
 echo "Building containers…"
+gcloud services enable iam.googleapis.com
+gcloud services enable cloudresourcemanager.googleapis.com
 gcloud services enable cloudbuild.googleapis.com
 gcloud services enable containerregistry.googleapis.com --project=${FOURKEYS_PROJECT}
 PARENT_PROJECTNUM=$(gcloud projects describe $(gcloud config get-value project) --format='value(projectNumber)')
