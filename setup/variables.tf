@@ -22,3 +22,7 @@ variable "parsers" {
 variable "image_tag" {
   type = string
 }
+
+variable "password" {
+  type = string
+}

@@ -12,4 +12,9 @@ steps:
         apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
         apt-get update && apt-get install -y terraform
         
-        ./setup.sh -a --project $_PROJECT_ID --tag ":$COMMIT_SHA"
+        ./setup.sh -a --project $_PROJECT_ID --tag ":$_TAG" --password "$$PASSWORD"
+    secretEnv: ['PASSWORD']
+availableSecrets:
+  secretManager:
+  - versionName: projects/fourkeys-builder/secrets/DASHBOARD_PASSWORD/versions/1
+    env: 'PASSWORD'

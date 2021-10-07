@@ -13,3 +13,7 @@ variable "fourkeys_service_account_email" {
 variable "image_tag" {
   type = string
 }
+
+variable "password" {
+  type = string
+}

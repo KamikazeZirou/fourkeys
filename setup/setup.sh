@@ -27,6 +27,7 @@ GENERATE_DATA="no"
 FOURKEYS_REGION="asia-northeast1"
 BIGQUERY_REGION="US"
 IMAGE_TAG=":latest"
+PASSWORD=",hR_0nu6VYQ0=iM,9O]T"
 
 for i in "$@"
 do
@@ -40,6 +41,7 @@ do
     --region ) FOURKEYS_REGION=$2; shift 2;;
     --bqregion ) BIGQUERY_REGION=$2; shift 2;;
     --tag ) IMAGE_TAG=$2; shift 2;;
+    --password ) PASSWORD=$2; shift 2;;
     -h | --help ) echo "Usage: ./setup.sh [--clean] [--auto] [--project] [--vcs] [--cicd] [--mock] [--region] [--bqregion]"; exit 0; shift;;
     *) ;; # unknown option
   esac
@@ -164,6 +166,7 @@ google_region = "${FOURKEYS_REGION}"
 bigquery_region = "${BIGQUERY_REGION}"
 parsers = [${PARSERS}]
 image_tag = "${IMAGE_TAG}"
+password = "${PASSWORD}"
 EOF
 
 echo "••••••••🔑••🔑••🔑••🔑••••••••"
