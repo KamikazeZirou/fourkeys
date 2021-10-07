@@ -13,3 +13,7 @@ variable "google_region" {
 variable "fourkeys_service_account_email" {
   type = string
 }
+
+variable "image_tag" {
+  type = string
+}
