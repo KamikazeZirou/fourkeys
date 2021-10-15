@@ -21,6 +21,7 @@ set -eEuo pipefail
 CLEAN="false"
 AUTO="false"
 FOURKEYS_PROJECT=""
+MAKE_NEW_PROJECT="no"
 GIT_SYSTEM="github"
 CICD_SYSTEM=""
 GENERATE_DATA="no"
@@ -35,6 +36,7 @@ do
     -c | --clean ) CLEAN="true"; shift;;
     -a | --auto ) AUTO="true"; shift;;
     --project ) FOURKEYS_PROJECT=$2; shift 2;;
+    --new ) MAKE_NEW_PROJECT=$2; shift 2;;
     --vcs ) GIT_SYSTEM=$2; shift 2;;
     --cicd ) CICD_SYSTEM=$2; shift 2;;
     --mock ) GENERATE_DATA="yes"; shift;;
@@ -42,7 +44,7 @@ do
     --bqregion ) BIGQUERY_REGION=$2; shift 2;;
     --tag ) IMAGE_TAG=$2; shift 2;;
     --password ) PASSWORD=$2; shift 2;;
-    -h | --help ) echo "Usage: ./setup.sh [--clean] [--auto] [--project] [--vcs] [--cicd] [--mock] [--region] [--bqregion]"; exit 0; shift;;
+    -h | --help ) echo "Usage: ./setup.sh [--clean] [--auto] [--project] [--new] [--vcs] [--cicd] [--mock] [--region] [--bqregion]"; exit 0; shift;;
     *) ;; # unknown option
   esac
 done
@@ -50,6 +52,27 @@ done
 PARENT_PROJECT=$(gcloud config get-value project 2>/dev/null)
 
 if [[ ${AUTO} != 'true' ]]
+    if [ $MAKE_NEW_PROJECT == 'yes' ]; then
+        echo "Creating new project for Four Keys Dashboard…"
+        PARENT_FOLDER=$(gcloud projects describe ${PARENT_PROJECT} --format="value(parent.id)")
+        BILLING_ACCOUNT=$(gcloud beta billing projects describe ${PARENT_PROJECT} --format="value(billingAccountName)" || sed -e 's/.*\///g')
+        
+        # try to create project; if fail, exit script
+        set +e
+        gcloud projects create ${FOURKEYS_PROJECT} --folder=${PARENT_FOLDER}
+        if [ $? -ne 0 ]; then
+            echo "Unable to create project; try again, and specify an existing project during setup."
+            exit 1
+        fi
+
+        gcloud beta billing projects link ${FOURKEYS_PROJECT} --billing-account=${BILLING_ACCOUNT}
+        if [ $? -ne 0 ]; then
+            echo "Unable to link billing account ${BILLING_ACCOUNT} to project ${FOURKEYS_PROJECT}."
+            echo "Assign a billing account manually, then re-run setup and specify the project during setup."
+            exit 1
+        fi
+        set -e
+    fi
 then
     read -p "Would you like to create a new project for The Four Keys (y/N): " make_new_project
     make_new_project=${make_new_project:-no}

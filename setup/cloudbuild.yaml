@@ -12,7 +12,7 @@ steps:
         apt-add-repository "deb [arch=amd64] https://apt.releases.hashicorp.com $(lsb_release -cs) main"
         apt-get update && apt-get install -y terraform
         
-        ./setup.sh -a --project $_PROJECT_ID --tag ":$_TAG" --password "$$PASSWORD"
+        ./setup.sh -a --project $_PROJECT_ID --new $_NEW --tag ":$_TAG" --password "$$PASSWORD"
     secretEnv: ['PASSWORD']
 availableSecrets:
   secretManager:
